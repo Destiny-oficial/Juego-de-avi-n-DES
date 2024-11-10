@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego de Avión</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="gameContainer">
+        <h1>Juego de Avión</h1>
+        <canvas id="gameCanvas"></canvas>
+        <button id="startButton">Iniciar Juego</button>
+        
+        <div class="controls">
+            <button class="control-button" id="leftButton">←</button>
+            <button class="control-button" id="rightButton">→</button>
+            <button class="control-button" id="upButton">↑</button>
+            <button class="control-button" id="downButton">↓</button>
+        </div>
+
+        <div id="score">Puntaje: 0</div>
+        <div id="winMessage">¡Felicidades, ganaste!</div>
+        <button id="nextButton">Siguiente</button>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>

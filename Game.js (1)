@@ -1,0 +1,321 @@
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+canvas.width = 200;
+canvas.height = 400;
+
+const player = {
+    x: canvas.width / 2 - 15,
+    y: canvas.height - 40,
+    width: 30,
+    height: 30,
+    speed: 5,
+    projectiles: []
+};
+
+const enemies = [];
+const enemySpeed = 2;
+let score = 0;
+let projectileCount = 1;
+let shootInterval;
+
+const keys = {};
+const controls = { left: false, right: false, up: false, down: false };
+
+document.addEventListener('keydown', (e) => keys[e.key] = true);
+document.addEventListener('keyup', (e) => keys[e.key] = false);
+
+document.getElementById('leftButton').addEventListener('touchstart', () => controls.left = true);
+document.getElementById('leftButton').addEventListener('touchend', () => controls.left = false);
+document.getElementById('rightButton').addEventListener('touchstart', () => controls.right = true);
+document.getElementById('rightButton').addEventListener('touchend', () => controls.right = false);
+document.getElementById('upButton').addEventListener('touchstart', () => controls.up = true);
+document.getElementById('upButton').addEventListener('touchend', () => controls.up = false);
+document.getElementById('downButton').addEventListener('touchstart', () => controls.down = true);
+document.getElementById('downButton').addEventListener('touchend', () => controls.down = false);
+
+function createEnemy() {
+    const enemy = {
+        x: Math.random() * (canvas.width - 40),
+        y: -40,
+        width: 30,
+        height: 30,
+        speed: enemySpeed
+    };
+    enemies.push(enemy);
+}
+
+function drawPlayer() {
+    ctx.fillStyle = 'blue';
+    ctx.fillRect(player.x, player.y, player.width, player.height);
+}
+
+function movePlayer() {
+    if ((keys['ArrowLeft'] || controls.left) && player.x > 0) player.x -= player.speed;
+    if ((keys['ArrowRight'] || controls.right) && player.x < canvas.width - player.width) player.x += player.speed;
+    if ((keys['ArrowUp'] || controls.up) && player.y > 0) player.y -= player.speed;
+    if ((keys['ArrowDown'] || controls.down) && player.y < canvas.height - player.height) player.y += player.speed;
+}
+
+function shootProjectile() {
+    if (score >= 70) {
+        projectileCount = 20;
+    } else if (score >= 60) {
+        projectileCount = 10;
+    } else if (score >= 50) {
+        projectileCount = 8;
+    } else if (score >= 40) {
+        projectileCount = 6;
+    } else if (score >= 20) {
+        projectileCount = 4;
+    } else if (score >= 10) {
+        projectileCount = 2;
+    }
+
+    for (let i = 0; i < projectileCount; i++) {
+        const angle = (i - (projectileCount - 1) / 2) * (Math.PI / 18);
+        const speedX = Math.sin(angle) * 7;
+        const speedY = -Math.cos(angle) * 7;
+
+        const projectile = {
+            x: player.x + player.width / 2 - 2.5,
+            y: player.y,
+            width: 5,
+            height: 10,
+            speedX: speedX,
+            speedY: speedY
+        };
+        player.projectiles.push(projectile);
+    }
+}
+
+function drawProjectiles() {
+    ctx.fillStyle = 'yellow';
+    player.projectiles.forEach((p, index) => {
+        p.x += p.speedX;
+        p.y += p.speedY;
+        ctx.fillRect(p.x, p.y, p.width, p.height);
+        if (p.y < 0 || p.x < 0 || p.x > canvas.width) player.projectiles.splice(index, 1);
+    });
+}
+
+function drawEnemies() {
+    ctx.fillStyle = 'red';
+    enemies.forEach((enemy, index) => {
+        enemy.y += enemy.speed;
+        ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+        if (enemy.y > canvas.height) enemies.splice(index, 1);
+    });
+}
+
+function detectCollisions() {
+    player.projectiles.forEach((p, pIndex) => {
+        enemies.forEach((enemy, eIndex) => {
+            if (
+                p.x < enemy.x + enemy.width &&
+                p.x + p.width > enemy.x &&
+                p.y < enemy.y + enemy.height &&
+                p.y + p.height > enemy.y
+            ) {
+                player.projectiles.splice(pIndex, 1);
+                enemies.splice(eIndex, 1);
+                score++;
+                document.getElementById('score').innerText = `Puntaje: ${score}`;
+
+                if (score >= 300) {
+                    document.getElementById('winMessage').style.display = 'block';
+                    document.getElementById('nextButton').style.display = 'block';
+                    clearInterval(shootInterval);
+                }
+            }
+        });
+    });
+
+    // Verificar colisiones con el jugador
+    enemies.forEach((enemy, eIndex) => {
+        if (
+            player.x < enemy.x + enemy.width &&
+            player.x + player.width > enemy.x &&
+            player.y < enemy.y + enemy.height &&
+            player.y + player.height > enemy.y
+        ) {
+            resetGame(); // Reiniciar juego si hay colisión
+        }
+    });
+}
+
+function resetGame() {
+    clearInterval(shootInterval);
+    document.getElementById('score').innerText = `Puntaje: 0`;
+    document.getElementById('winMessage').style.display = 'none';
+    document.getElementById('nextButton').style.display = 'none';
+    score = 0;
+    enemies.length = 0;
+    player.projectiles.length = 0;
+    player.x = canvas.width / 2 - 15;
+    // Función para crear enemigos
+        function createEnemy() {
+            const enemy = {
+                x: Math.random() * (canvas.width - 40),
+                y: -40,
+                width: 30,
+                height: 30,
+                speed: enemySpeed
+            };
+            enemies.push(enemy);
+        }
+
+        // Función para dibujar el jugador
+        function drawPlayer() {
+            ctx.fillStyle = 'blue';
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+        }
+
+        // Función para mover el jugador
+        function movePlayer() {
+            if ((keys['ArrowLeft'] || controls.left) && player.x > 0) player.x -= player.speed;
+            if ((keys['ArrowRight'] || controls.right) && player.x < canvas.width - player.width) player.x += player.speed;
+            if ((keys['ArrowUp'] || controls.up) && player.y > 0) player.y -= player.speed;
+            if ((keys['ArrowDown'] || controls.down) && player.y < canvas.height - player.height) player.y += player.speed;
+        }
+
+        // Función para disparar proyectiles
+        function shootProjectile() {
+            if (score >= 70) {
+                projectileCount = 20;
+            } else if (score >= 60) {
+                projectileCount = 10;
+            } else if (score >= 50) {
+                projectileCount = 8;
+            } else if (score >= 40) {
+                projectileCount = 6;
+            } else if (score >= 20) {
+                projectileCount = 4;
+            } else if (score >= 10) {
+                projectileCount = 2;
+            }
+
+            for (let i = 0; i < projectileCount; i++) {
+                const angle = (i - (projectileCount - 1) / 2) * (Math.PI / 18);
+                const speedX = Math.sin(angle) * 7;
+                const speedY = -Math.cos(angle) * 7;
+
+                const projectile = {
+                    x: player.x + player.width / 2 - 2.5,
+                    y: player.y,
+                    width: 5,
+                    height: 10,
+                    speedX: speedX,
+                    speedY: speedY
+                };
+                player.projectiles.push(projectile);
+            }
+        }
+
+        // Función para dibujar proyectiles
+        function drawProjectiles() {
+            ctx.fillStyle = 'yellow';
+            player.projectiles.forEach((p, index) => {
+                p.x += p.speedX;
+                p.y += p.speedY;
+                ctx.fillRect(p.x, p.y, p.width, p.height);
+                if (p.y < 0 || p.x < 0 || p.x > canvas.width) player.projectiles.splice(index, 1);
+            });
+        }
+
+        // Función para dibujar enemigos
+        function drawEnemies() {
+            ctx.fillStyle = 'red';
+            enemies.forEach((enemy, index) => {
+                enemy.y += enemy.speed;
+                ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+                if (enemy.y > canvas.height) enemies.splice(index, 1);
+            });
+        }
+
+        // Función para detectar colisiones
+        function detectCollisions() {
+            player.projectiles.forEach((p, pIndex) => {
+                enemies.forEach((enemy, eIndex) => {
+                    if (
+                        p.x < enemy.x + enemy.width &&
+                        p.x + p.width > enemy.x &&
+                        p.y < enemy.y + enemy.height &&
+                        p.y + p.height > enemy.y
+                    ) {
+                        player.projectiles.splice(pIndex, 1);
+                        enemies.splice(eIndex, 1);
+                        score++;
+                        document.getElementById('score').innerText = `Puntaje: ${score}`;
+
+                        if (score >= 300) {
+                            document.getElementById('winMessage').style.display = 'block';
+                            document.getElementById('nextButton').style.display = 'block';
+                            clearInterval(shootInterval);
+                        }
+                    }
+                });
+            });
+
+            // Verificar colisiones con el jugador
+            enemies.forEach((enemy, eIndex) => {
+                if (
+                    player.x < enemy.x + enemy.width &&
+                    player.x + player.width > enemy.x &&
+                    player.y < enemy.y + enemy.height &&
+                    player.y + player.height > enemy.y
+                ) {
+                    resetGame(); // Reiniciar juego si hay colisión
+                }
+            });
+        }
+
+        // Función para reiniciar el juego
+        function resetGame() {
+            clearInterval(shootInterval);
+            document.getElementById('score').innerText = `Puntaje: 0`;
+            document.getElementById('winMessage').style.display = 'none';
+            document.getElementById('nextButton').style.display = 'none';
+            score = 0;
+            enemies.length = 0;
+            player.projectiles.length = 0;
+            player.x = canvas.width / 2 - 15;
+            player.y = canvas.height - 40;
+            player.x = canvas.width / 2 - 15;
+            player.y = canvas.height - 40;
+            startGame(); // Reiniciar el juego
+        }
+
+        // Función para actualizar el juego
+        function updateGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            movePlayer();
+            drawPlayer();
+            drawProjectiles();
+            drawEnemies();
+            detectCollisions();
+            if (Math.random() < 0.02) createEnemy();
+        }
+
+        // Función para iniciar el juego
+        function startGame() {
+            shootInterval = setInterval(shootProjectile, 200); // Intervalo para disparar proyectiles
+            setInterval(updateGame, 16); // Llamada repetida para actualizar el juego (60 FPS)
+        }
+
+        // Evento para iniciar el juego al hacer clic en el botón de inicio
+        document.getElementById('startButton').addEventListener('click', () => {
+            document.getElementById('startButton').style.display = 'none'; // Ocultar botón de inicio
+            startGame(); // Comenzar el juego
+        });
+
+        // Evento para reiniciar el juego al hacer clic en el botón siguiente
+        document.getElementById('nextButton').addEventListener('click', () => {
+            resetGame(); // Reiniciar el juego al hacer clic en siguiente
+            document.getElementById('winMessage').style.display = 'none';
+            document.getElementById('nextButton').style.display = 'none';
+            document.getElementById('startButton').style.display = 'block'; // Mostrar el botón de inicio
+        });
+    </script>
+</body>
+</html>
